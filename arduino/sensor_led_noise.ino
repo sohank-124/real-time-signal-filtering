@@ -1,13 +1,11 @@
 // Photoresistor + controlled LED artifact + serial output "ms,adc"
 const int sensorPin = A0;
-
-// RGB channel pin used for flicker artifact
-const int ledPin = 6;            // e.g., RED channel on D6 (PWM-capable, but we use digital)
-const int sampleRate = 50;       // realistic with Serial; Octave will estimate actual fs anyway
+const int ledPin = 6;            
+const int sampleRate = 50;      
 const int sampleInterval = 1000 / sampleRate;
 
-// Flicker settings (artifact frequency)
-const int blinkMs = 50;          // 50ms toggle -> 10 Hz square wave
+// Flicker settings 
+const int blinkMs = 50;
 unsigned long lastBlink = 0;
 bool ledOn = false;
 
@@ -22,7 +20,7 @@ void setup() {
 void loop() {
   unsigned long t = millis();
 
-  // Controlled artifact: 10 Hz LED flicker (square wave)
+  // Controlled artifact: 10 Hz LED flicker 
   if (t - lastBlink >= (unsigned long)blinkMs) {
     ledOn = !ledOn;
     digitalWrite(ledPin, ledOn); // common cathode: HIGH = on

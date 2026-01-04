@@ -43,18 +43,14 @@ The injected LED flicker appears as a clear peak in the frequency spectrum at th
 ## Repository Structure
 arduino/
 sensor_led_noise.ino
-
 matlab_octave/
 signal_processing.m
-
 documentation/
 arduino_setup.jpg
 demo_video.mp4
 tinkercad_link.txt
-
 figures/
 raw_filtered_fft_psd.png
-
 
 ## Why This Matters
 The filtering and frequency analysis techniques used here are the same tools applied in many real signal-processing tasks, including neuroscience and biomedical engineering. This project focuses on understanding how noise enters a system and how it can be analyzed and reduced.

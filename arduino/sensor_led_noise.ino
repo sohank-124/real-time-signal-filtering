@@ -5,10 +5,10 @@ const int sensorPin = A0;        // Photoresistor input
 
 // LED used as a controlled optical noise source
 const int ledPin = 6;            // Digital output driving LED
-const int sampleRate = 50;       // Target sampling rate (Hz)
+const int sampleRate = 50;       // Target sampling rate in Hz
 const int sampleInterval = 1000 / sampleRate;
 
-// LED flicker parameters (10 Hz square wave)
+// LED flicker parameters (10 Hz)
 const int blinkMs = 50;
 unsigned long lastBlink = 0;
 bool ledOn = false;
@@ -24,7 +24,7 @@ void setup() {
 void loop() {
   unsigned long t = millis();
 
-  // Inject periodic optical artifact via LED flicker
+  // Inject periodic LED flickers
   if (t - lastBlink >= (unsigned long)blinkMs) {
     ledOn = !ledOn;
     digitalWrite(ledPin, ledOn); // HIGH = ON for common-cathode LED

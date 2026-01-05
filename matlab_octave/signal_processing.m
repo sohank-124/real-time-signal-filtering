@@ -1,29 +1,26 @@
-% Real-time sensor data acquisition and signal processing pipeline
-% Reads timestamped Arduino data ("ms,adc"), applies filtering,
-% and performs frequency-domain analysis (FFT and PSD)
+% This script implements a pipeline for data acquisition and analysis
 
 pkg load signal
 pkg load instrument-control
 
-% ---------------- Configuration ----------------
+% Configuration and Serial Setup
 PORT = 'COM3';          % Arduino serial port
-BAUD = 115200;          % Must match Serial.begin() on Arduino
+BAUD = 115200;          % Baud rate
 Tsec = 30;              % Data collection duration (seconds)
-fc   = 5;               % Low-pass filter cutoff frequency (Hz)
-% ------------------------------------------------
+fc   = 5;               % Low-pass cutoff frequency (Hz)
 
-% Open serial connection to Arduino
+% Open serial connection
 arduino = serial(PORT, BAUD);
 fopen(arduino);
-pause(2);               % Allow Arduino to reset
+pause(2);               % Allow Arduino reset
 
-% Flush any startup bytes from the serial buffer
+% Flush startup bytes
 try
   n = srl_available(arduino);
   if n > 0, srl_read(arduino, n); end
 end
 
-% Initialize storage and buffer
+% Initialize buffers
 data = [];
 buf  = '';
 t0   = time();
@@ -35,7 +32,7 @@ while (time() - t0) < Tsec
   try
     n = srl_available(arduino);
   catch
-    n = 64;             % Fallback read size
+    n = 64;
   end
 
   if n > 0
@@ -43,7 +40,6 @@ while (time() - t0) < Tsec
     if c > 0
       buf = [buf, char(bytes)];
 
-      % Process complete newline-terminated samples
       while true
         k = find(buf == "\n", 1);
         if isempty(k), break; end
@@ -51,7 +47,6 @@ while (time() - t0) < Tsec
         line = strtrim(buf(1:k-1));
         buf  = buf(k+1:end);
 
-        % Parse "milliseconds,ADC"
         v = sscanf(line, '%f,%f');
         if numel(v) == 2
           data(end+1, :) = v.';
@@ -69,32 +64,39 @@ if rows(data) == 0
   error('No samples collected. Close Serial Monitor and check port/baud.');
 end
 
-% ---------------- Time & Sampling Rate ----------------
-t = data(:,1) / 1000;   % Convert ms to seconds
-x = data(:,2);          % ADC values
+% ---------------- Time and Signal ----------------
+t = data(:,1) / 1000;   % ms -> seconds
+x = data(:,2);
 
-% Estimate effective sampling frequency from timestamps
+% -------- FIX: remove serial glitches / timestamp resets --------
+good = [true; diff(t) > 0];   % keep strictly increasing timestamps
+t = t(good);
+x = x(good);
+
+[t, ia] = unique(t, 'stable'); % remove duplicates
+x = x(ia);
+% ---------------------------------------------------------------
+
+% Estimate sampling rate from cleaned timestamps
 dt = diff(t);
-dt = dt(dt > 0);
 if isempty(dt)
-  fs = 50;              % Fallback value
+  fs = 50;
 else
   fs = 1 / median(dt);
 end
 
 fprintf('Estimated sampling rate: %.2f Hz\n', fs);
 
-% ---------------- Low-Pass Filtering ----------------
+% ---------------- Low-Pass Filter ----------------
 nyq = fs / 2;
 if fc >= nyq
-  fc = max(0.1, 0.4 * nyq);
+  fc = max(0.1, 0.9 * nyq);
 end
 
 [b, a] = butter(4, fc / nyq, 'low');
 xf = filtfilt(b, a, x);
 
-% ---------------- Frequency Analysis ----------------
-% Remove DC offset prior to FFT
+% ---------------- FFT ----------------
 x0  = x  - mean(x);
 xf0 = xf - mean(xf);
 
@@ -105,46 +107,43 @@ f     = (0:N-1) * (fs / N);
 X  = abs(fft(x0));
 Xf = abs(fft(xf0));
 
-% ---------------- Power Spectral Density ----------------
+% ---------------- PSD ----------------
 [pxx, fpsd] = pwelch(x0, [], [], [], fs);
 
-% ---------------- Signal-to-Noise Ratio ----------------
+% ---------------- SNR ----------------
 sigP = var(xf);
 noiP = var(x - xf);
 SNRdB = (noiP <= 0) * Inf + (noiP > 0) * (10 * log10(sigP / noiP));
-
 fprintf('Estimated SNR: %.2f dB\n', SNRdB);
 
-% ---------------- Visualization ----------------
+% ---------------- Plots ----------------
 figure(1); clf;
 
 subplot(4,1,1);
-plot(t, x); grid on;
-title('Raw Signal');
+plot(t, x, 'color', [0.7 0.7 0.7]); hold on;
+plot(t, xf, 'b', 'linewidth', 1.2);
+title('Time Domain: Raw Signal vs Filtered Signal');
 xlabel('Time (s)'); ylabel('ADC');
-legend('Raw');
+legend('Raw Noise','Clean Signal');
 
 subplot(4,1,2);
 plot(t, xf); grid on;
-title(sprintf('Low-pass Filtered (%.2f Hz)', fc));
+title(sprintf('Filtered Signal Zoom (%.2f Hz Low-pass)', fc));
 xlabel('Time (s)'); ylabel('ADC');
-legend('Filtered');
 
 subplot(4,1,3);
-plot(f(1:halfN), X(1:halfN), 'r', 'linewidth', 1.2); hold on;
+plot(f(1:halfN), X(1:halfN), 'r', 'linewidth', 1.0); hold on;
 plot(f(1:halfN), Xf(1:halfN), 'b', 'linewidth', 1.2);
 grid on; hold off;
-title('FFT (DC Removed)');
+title('Frequency Spectrum (FFT - DC Removed)');
 xlabel('Frequency (Hz)'); ylabel('|X(f)|');
-legend('Raw','Filtered');
+legend('Raw FFT','Filtered FFT');
 xlim([0, min(25, fs/2)]);
 
 subplot(4,1,4);
 plot(fpsd, 10*log10(pxx), 'linewidth', 1.2); grid on;
-title('Power Spectral Density (Welch)');
+title('Power Spectral Density (Welch Estimator)');
 xlabel('Frequency (Hz)'); ylabel('dB/Hz');
-legend('Raw PSD');
 xlim([0, min(25, fs/2)]);
 
 fprintf('Analysis complete.\n');
-

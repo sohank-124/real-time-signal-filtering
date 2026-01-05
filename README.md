@@ -48,8 +48,8 @@ matlab_octave/
 signal_processing.m
 
 documentation/
-octaveGraphs.png
-Octave_code_demonstration.mp4
+octaveGraphs.png,
+Octave_code_demonstration.mp4,
 Arduino_TinkerCAD_Model.png
 
 ## Why This Matters

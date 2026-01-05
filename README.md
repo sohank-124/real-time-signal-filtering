@@ -38,19 +38,19 @@ Optional hardware documentation (photos, demo video, and Tinkercad model) is inc
 - Visualizes raw and processed signals
 
 ## Results
-The injected LED flicker appears as a clear peak in the frequency spectrum at the expected frequency, along with harmonics. After filtering, these components are strongly reduced while the underlying signal remains intact. The FFT and PSD plots agree, confirming effective noise removal.
+The injected LED flicker appears as a clear peak in the frequency spectrum at the expected frequency. After filtering, these components are strongly reduced while the underlying signal remains intact. The FFT and PSD plots agree, confirming an effective noise removal.
 
 ## Repository Structure
 arduino/
 sensor_led_noise.ino
+
 matlab_octave/
 signal_processing.m
+
 documentation/
-arduino_setup.jpg
-demo_video.mp4
-tinkercad_link.txt
-figures/
-raw_filtered_fft_psd.png
+octaveGraphs.png
+Octave_code_demonstration.mp4
+Arduino_TinkerCAD_Model.png
 
 ## Why This Matters
 The filtering and frequency analysis techniques used here are the same tools applied in many real signal-processing tasks, including neuroscience and biomedical engineering. This project focuses on understanding how noise enters a system and how it can be analyzed and reduced.

@@ -3,7 +3,7 @@
 ## Overview
 This project demonstrates how noisy sensor data can be collected, filtered, and analyzed using basic signal processing techniques. An Arduino reads light intensity from a photoresistor while a periodically blinking LED injects controlled noise into the signal. The data is streamed to Octave/MATLAB, where filtering and frequency analysis are used to separate the underlying signal from noise.
 
-This setup models how real-world biological signals (such as neural or heart signals) often contain both meaningful information and unwanted interference.
+This setup models how real-world biological signals often contain both meaningful information and unwanted interference.
 
 ## What This Project Does
 - Collects timestamped sensor data from an Arduino in real time
@@ -22,7 +22,7 @@ This setup models how real-world biological signals (such as neural or heart sig
 
 The LED is placed near the photoresistor and blinks at a fixed frequency, causing periodic changes in the sensor reading.
 
-Optional hardware documentation (photos, demo video, and Tinkercad model) is included in the documentation folder.
+The resulting graph, the TinkerCAD model and a demo video are included in the documentation folder.
 
 ## Software
 ### Arduino

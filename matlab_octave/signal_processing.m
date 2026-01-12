@@ -68,7 +68,7 @@ end
 t = data(:,1) / 1000;   % ms -> seconds
 x = data(:,2);
 
-% -------- FIX: remove serial glitches / timestamp resets --------
+% --------  remove serial glitches / timestamp resets --------
 good = [true; diff(t) > 0];   % keep strictly increasing timestamps
 t = t(good);
 x = x(good);
@@ -147,3 +147,4 @@ xlabel('Frequency (Hz)'); ylabel('dB/Hz');
 xlim([0, min(25, fs/2)]);
 
 fprintf('Analysis complete.\n');
+
